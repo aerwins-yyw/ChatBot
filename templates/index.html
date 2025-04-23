@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Lumina | Investment Analysis Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Settings</h3>
+                <button class="close-sidebar" id="close-sidebar"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="sidebar-content">
+                <div class="settings-group">
+                    <label for="model-select">AI Model</label>
+                    <select id="model-select" class="settings-input">
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        <option value="gpt-4o">GPT-4o</option>
+                    </select>
+                    <span class="settings-description" id="model-description">Fastest, most cost-effective</span>
+                </div>
+                
+                <div class="settings-group">
+                    <label for="system-message">System Instructions</label>
+                    <textarea id="system-message" class="settings-input" rows="6">You are AI-Lumina, an expert investment analyst assistant. Provide concise, data-driven insights on financial markets, investment strategies, and economic trends. Your analysis should be balanced, considering both risks and opportunities. Use professional financial terminology when appropriate.</textarea>
+                </div>
+                
+                <div class="settings-group">
+                    <label for="temperature-slider">Response Creativity</label>
+                    <div class="slider-container">
+                        <input type="range" id="temperature-slider" class="settings-slider" min="0" max="1" step="0.1" value="0.7">
+                        <span class="settings-slider-value" id="temperature-value">0.7</span>
+                    </div>
+                    <span class="settings-description">Lower values for deterministic responses, higher for creative ones</span>
+                </div>
+                
+                <button id="reset-chat" class="settings-button">Reset Conversation</button>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <header class="app-header">
+                <div class="logo-container">
+                    <div class="logo-text">AI-Lumina</div>
+                    <div class="logo-subtitle">Investment Analysis Assistant</div>
+                </div>
+                <button class="settings-toggle" id="open-sidebar"><i class="bi bi-gear"></i></button>
+            </header>
+            
+            <div class="chat-container" id="chat-container"></div>
+            
+            <div class="input-container">
+                <textarea id="user-input" placeholder="Ask about investments, market trends, or financial analysis..." rows="1"></textarea>
+                <button id="send-button" class="send-button">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading indicator -->
+    <div class="loading-indicator" id="loading-indicator">
+        <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <!-- Templates for chat bubbles -->
+    <template id="user-message-template">
+        <div class="chat-message user">
+            <div class="message-content">
+                <div class="message-text"></div>
+                <div class="message-timestamp"></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="assistant-message-template">
+        <div class="chat-message assistant">
+            <div class="message-content">
+                <div class="message-text"></div>
+                <div class="message-timestamp"></div>
+            </div>
+        </div>
+    </template>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 
