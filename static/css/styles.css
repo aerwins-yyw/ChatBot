@@ -392,4 +392,57 @@ body {
     .logo-subtitle {
         font-size: 0.7rem;
     }
+}
+
+/* Thinking indicator in chat message */
+.thinking-dots {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0.5rem 0;
+    height: 24px;
+}
+
+.thinking-dots span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--bcg-teal);
+    animation: thinking-pulse 1.4s infinite ease-in-out both;
+}
+
+.thinking-dots span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.thinking-dots span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes thinking-pulse {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.6;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Minor animation for response appearance */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-content.assistant {
+    animation: fadeInUp 0.3s ease-out;
 } 

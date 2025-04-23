@@ -124,8 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Focus back on input
         userInput.focus();
         
+        // Add a thinking indicator message
+        const thinkingMessageElement = addThinkingIndicator();
+        
         // Get response from API
-        getAIResponse();
+        getAIResponse(thinkingMessageElement);
     }
     
     function addMessage(role, content, timestamp = getCurrentTime()) {
@@ -152,6 +155,45 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Scroll to bottom
         scrollToBottom();
+        
+        // Return the message element's text container for possible later updates
+        return messageText;
+    }
+    
+    function addThinkingIndicator() {
+        // Clone the assistant message template
+        const messageElement = document.importNode(assistantMessageTemplate.content, true);
+        
+        // Get the message text element
+        const messageText = messageElement.querySelector('.message-text');
+        
+        // Create the thinking indicator
+        const thinkingIndicator = document.createElement('div');
+        thinkingIndicator.className = 'thinking-dots';
+        thinkingIndicator.innerHTML = '<span></span><span></span><span></span>';
+        
+        // Clear existing content and append thinking indicator
+        messageText.textContent = '';
+        messageText.appendChild(thinkingIndicator);
+        
+        // Set timestamp
+        const messageTimestamp = messageElement.querySelector('.message-timestamp');
+        messageTimestamp.textContent = getCurrentTime();
+        
+        // Add class to message content
+        const messageContent = messageElement.querySelector('.message-content');
+        if (messageContent) {
+            messageContent.classList.add('assistant');
+        }
+        
+        // Add message to chat container
+        chatContainer.appendChild(messageElement);
+        
+        // Scroll to bottom
+        scrollToBottom();
+        
+        // Return the message text element so we can replace it later
+        return messageText;
     }
     
     function scrollToBottom() {
@@ -190,7 +232,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hours}:${minutes}`;
     }
     
-    async function getAIResponse() {
+    // Function to simulate text streaming effect
+    function typeText(element, text, speed = 10) {
+        return new Promise(resolve => {
+            let i = 0;
+            element.textContent = '';
+            
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    scrollToBottom();
+                    setTimeout(type, speed);
+                } else {
+                    resolve();
+                }
+            }
+            
+            type();
+        });
+    }
+    
+    async function getAIResponse(thinkingIndicator) {
         // Update system message
         messages[0].content = systemMessage.value;
         
@@ -202,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoadingIndicator();
         
         try {
+            console.log('Sending request to /api/chat...');
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
@@ -214,24 +278,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
             
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error(`Server returned non-JSON response: ${contentType}`);
+            }
+            
             const data = await response.json();
             
             if (response.ok) {
-                // Add assistant message to UI
-                addMessage('assistant', data.response, data.timestamp);
-                
-                // Add to messages array
-                messages.push({
-                    role: 'assistant',
-                    content: data.response
-                });
+                if (data.response) {
+                    // Remove thinking indicator
+                    if (thinkingIndicator && thinkingIndicator.parentNode) {
+                        thinkingIndicator.parentNode.removeChild(thinkingIndicator);
+                    }
+                    
+                    // Add assistant message to UI with typing effect
+                    const messageText = addMessage('assistant', '', getCurrentTime());
+                    await typeText(messageText, data.response, 5);
+                    
+                    // Add to messages array
+                    messages.push({
+                        role: 'assistant',
+                        content: data.response
+                    });
+                } else {
+                    throw new Error('Response missing expected data');
+                }
             } else {
-                // Show error message
-                addMessage('assistant', `Error: ${data.error || 'Something went wrong'}`, getCurrentTime());
+                // Show error message from the server
+                const errorMsg = data.error || 'Unknown server error';
+                console.error('Server error:', errorMsg);
+                
+                // Remove thinking indicator
+                if (thinkingIndicator && thinkingIndicator.parentNode) {
+                    thinkingIndicator.parentNode.removeChild(thinkingIndicator);
+                }
+                
+                addMessage('assistant', `Error: ${errorMsg}`, getCurrentTime());
             }
         } catch (error) {
-            console.error('Error:', error);
-            addMessage('assistant', 'Error: Could not connect to the server. Please try again.', getCurrentTime());
+            console.error('Chat request failed:', error);
+            
+            // Remove thinking indicator
+            if (thinkingIndicator && thinkingIndicator.parentNode) {
+                thinkingIndicator.parentNode.removeChild(thinkingIndicator);
+            }
+            
+            addMessage('assistant', `Error: ${error.message || 'Could not connect to the server. Please try again.'}`, getCurrentTime());
         } finally {
             hideLoadingIndicator();
         }
